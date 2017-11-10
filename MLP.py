@@ -13,7 +13,7 @@ class MultiLayerPerceptron:
         self.num_layers = len(arch) - 1
 
         for ii in range(self.num_layers):
-            self.weights['w_%d_%d' % (ii, ii + 1)] = np.random.randint(0, 5, arch[ii:ii + 2])
+            self.weights['w_%d_%d' % (ii, ii + 1)] = np.zeros(arch[ii:ii + 2])
 
     def forward_prop(self, x):
         if len(x.shape) != 2 or x.shape[1] != self.arch[0]:
@@ -28,8 +28,12 @@ class MultiLayerPerceptron:
 
         return self.y
 
-    def back_prop(self):
+    def load_initial_weights(self):
+
+
+    def back_prop(self, trainX, trainY, gamma, lamduh):
         pass
+
 
     def test_network(self):
         pass
