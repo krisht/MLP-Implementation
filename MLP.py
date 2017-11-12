@@ -28,7 +28,9 @@ class MultiLayerPerceptron:
 
         return self.y
 
-    def load_initial_weights(self):
+    def load_initial_weights(self, file):
+
+        pass
 
 
     def back_prop(self, trainX, trainY, gamma, lamduh):
