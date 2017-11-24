@@ -119,9 +119,9 @@ def __train_neural_network__():
 	# while not lambduh > 0.0:
 	# 	lambduh = float(input("Enter learning rate: "))
 
-	initial_weights_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.trained'
 	num_epochs = 10
 	lambduh = 5
+	initial_weights_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.trained'
 	data_file_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.train'
 
 	net = MultiLayerPerceptron(initial_weights_path, data_file_path, num_epochs, lambduh)
