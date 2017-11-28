@@ -4,6 +4,8 @@ import numpy as np
 from scipy.special import expit as sig
 from sklearn.metrics import confusion_matrix
 
+np.set_printoptions(precision=3)
+
 
 #
 # def dsig(X):
@@ -107,15 +109,16 @@ class MultiLayerPerceptron:
 		results = np.zeros((self.arch[2], 4))
 		y_pred = np.round(self.forward_prop(self.X_test), 0)
 		for ii in range(self.arch[2]):
-			results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_pred[:, ii]), (4))
-		overall_accuracy = (results[:, 0] + results[:, 3])/np.sum(results, 1)
-		precision = (results[:, 0])/(results[:, 0] + results[:, 1])
+			results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_pred[:, ii]), 4)
+			results[ii, 0], results[ii, 3] = results[ii, 3], results[ii, 0]
+
+		accuracy_score = (results[:, 0] + results[:, 3])/np.sum(results, 1)
+		precision = (results[:, 0])/np.sum(results[:, 0:2], 1)
 		recall = (results[:, 0])/(results[:, 0] + results[:, 2])
-		f1 = (2 * precision * recall)/(precision + recall)
-		print(results[:,2])
+		f1 = 2 * precision * recall / (precision + recall)
 
-		print(f1)
-
+		results = np.concatenate((results, np.expand_dims(accuracy_score, 0).T, np.expand_dims(precision, 0).T, np.expand_dims(recall, 0).T, np.expand_dims(f1, 0).T), 1)
+		# Print the shit to file
 
 	def train_network(self):
 		# for X, y in zip(self.X_train, self.y_train):
