@@ -1,5 +1,4 @@
 import os
-import sys
 
 import numpy as np
 import sklearn.datasets
@@ -228,7 +227,7 @@ def generate_dataset():
 
 	x, y = sklearn.datasets.make_multilabel_classification(train_size + test_size, n_features, n_classes,
 														   allow_unlabeled=False)
-	x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
 
 	with open('krishna_dataset.train', 'w') as f:
 		f.write("%d %d %d\n" % (train_size, n_features, n_classes))
@@ -241,16 +240,17 @@ def generate_dataset():
 	np.savetxt(open('krishna_dataset.train', 'ab'), train_set, '%d', delimiter=' ')
 	np.savetxt(open('krishna_dataset.test', 'ab'), test_set, '%d', delimiter=' ')
 
-if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("usage: python MLP.py <train | test>")
-	elif sys.argv[1] == 'test':
-		__test_neural_network__()
-	elif sys.argv[1] == 'train':
-		__train_neural_network__()
-	elif sys.argv[1] == 'gen_data':
-		generate_dataset()
-	else:
-		print("usage: python MLP.py <train | test | gen_data>")
+
+# if __name__ == "__main__":
+# 	if len(sys.argv) < 2:
+# 		print("usage: python MLP.py <train | test>")
+# 	elif sys.argv[1] == 'test':
+# 		__test_neural_network__()
+# 	elif sys.argv[1] == 'train':
+# 		__train_neural_network__()
+# 	elif sys.argv[1] == 'gen_data':
+# 		generate_dataset()
+# 	else:
+# 		print("usage: python MLP.py <train | test | gen_data>")
 
 generate_dataset()
