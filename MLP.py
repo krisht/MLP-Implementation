@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 from scipy.special import expit as sig
@@ -7,23 +8,28 @@ from sklearn.metrics import confusion_matrix
 np.set_printoptions(precision=3)
 
 
-#
-# def dsig(X):
-# 	return sig(X) * (1 - sig(X))
+def dsig(X):
+	return sig(X) * (1 - sig(X))
 
-# def sig(X):
-# 	return sig(X)
 
 class MultiLayerPerceptron:
-	def __init__(self, init_weights_file=None, train_data_file=None, test_data_file=None, num_epochs=None, lambdah=None):
+	def __init__(self, init_weights_file=None, train_data_file=None, test_data_file=None, output_file=None,
+				 num_epochs=None,
+				 lambdah=None):
 		self.train_data_file = train_data_file
 		self.test_data_file = test_data_file
 		self.init_weights_file = init_weights_file
+		self.output_file = output_file
 		self.num_epochs = num_epochs
 		self.lambdah = lambdah
 		self.arch = []
 		self.weights = {}
 		self.biases = {}
+
+		self.inputs = []
+		self.activations = []
+		self.zs = []
+		self.outputs = []
 
 		self.load_initial_weights()
 
@@ -40,10 +46,8 @@ class MultiLayerPerceptron:
 			self.X_test, self.y_test = self.get_data(self.test_data_file)
 		else:
 			self.X_test, self.y_test = None, None
-		#print(self.X_test)
-		#print(self.y_test)
 
-		#self.train_network()
+		# self.train_network()
 
 	def get_data(self, file_name):
 		data = []
@@ -62,20 +66,33 @@ class MultiLayerPerceptron:
 				data = data + [line]
 			x = np.asarray(data).T[:num_inputs].T
 			y = np.asarray(data).T[num_inputs:].T
-		return x, y
+			return x, y
+		return None, None
 
 	def forward_prop(self, x):
 		if len(x.shape) != 2 or x.shape[1] != self.arch[0]:
 			raise ValueError("Incorrect input shape " + str(x.shape) + " given!")
 		else:
 			self.y = None
+			self.inputs = []
+			self.outputs = []
+			self.zs = []
+			self.activations = []
 			for ii in range(self.num_layers):
 				if self.y is None:
-					#print(sig(np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)]))
-					self.y = sig(np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)])
+					self.inputs = self.inputs + [x]
+					self.zs = self.zs + [
+						np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)]]
+					self.y = sig(
+						np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)])
+					self.outputs = self.outputs + [self.y]
 				else:
-					#print(sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)])  - self.biases["b_%d_%d" % (ii, ii + 1)]))
-					self.y = sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)])
+					self.inputs = self.inputs + [self.y]
+					self.zs = self.zs + [np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases[
+						"b_%d_%d" % (ii, ii + 1)]]
+					self.y = sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases[
+						"b_%d_%d" % (ii, ii + 1)])
+					self.outputs = self.outputs + [self.y]
 		return self.y
 
 	def load_initial_weights(self):
@@ -106,28 +123,49 @@ class MultiLayerPerceptron:
 		pass
 
 	def test_network(self):
-		results = np.zeros((self.arch[2], 4))
+		orig_results = np.zeros((self.arch[2], 4))
 		y_pred = np.round(self.forward_prop(self.X_test), 0)
 		for ii in range(self.arch[2]):
-			results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_pred[:, ii]), 4)
-			results[ii, 0], results[ii, 3] = results[ii, 3], results[ii, 0]
+			orig_results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_pred[:, ii]), 4)
+			orig_results[ii, 0], orig_results[ii, 3] = orig_results[ii, 3], orig_results[ii, 0]
 
-		accuracy_score = (results[:, 0] + results[:, 3])/np.sum(results, 1)
-		precision = (results[:, 0])/np.sum(results[:, 0:2], 1)
-		recall = (results[:, 0])/(results[:, 0] + results[:, 2])
-		f1 = 2 * precision * recall / (precision + recall)
+		orig_results = np.asarray(orig_results, dtype=np.int32)
 
-		results = np.concatenate((results, np.expand_dims(accuracy_score, 0).T, np.expand_dims(precision, 0).T, np.expand_dims(recall, 0).T, np.expand_dims(f1, 0).T), 1)
-		# Print the shit to file
+		accuracy_score, precision, recall, f1 = self.calculate_metrics(orig_results)
+
+		results = np.concatenate((orig_results, np.expand_dims(accuracy_score, 0).T, np.expand_dims(precision, 0).T,
+								  np.expand_dims(recall, 0).T, np.expand_dims(f1, 0).T), 1)
+
+		temp = np.average(results[:, 4:], axis=0)
+		temp[3] = 2 * temp[1] * temp[2] / (temp[1] + temp[2])
+
+		with open(self.output_file, 'w') as f:
+			for ii in range(results.shape[0]):
+				f.write("%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :]))
+			f.write("%0.3f %0.3f %0.3f %0.3f\n" % self.calculate_metrics(np.sum(orig_results, axis=0, keepdims=True)))
+			f.write("%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp))
 
 	def train_network(self):
-		# for X, y in zip(self.X_train, self.y_train):
-		# 	#print(X, y)
+		y_pred = self.forward_prop(self.X_train)
+		delj1 = np.matmul(dsig(self.inputs[1]).T, (self.y_train - self.outputs[1]))
+		delj2 = np.matmul(dsig(self.inputs[0]).T, self.zs[0])
+
 		pass
+
+	def calculate_metrics(self, results):
+		accuracy_score = np.asarray((results[:, 0] + results[:, 3]) / np.sum(results, 1), dtype=np.float32)
+		precision = np.asarray((results[:, 0]) / np.sum(results[:, 0:2], 1), dtype=np.float32)
+		recall = np.asarray((results[:, 0]) / (results[:, 0] + results[:, 2]), dtype=np.float32)
+		f1 = np.asarray(2 * precision * recall / (precision + recall), dtype=np.float32)
+
+		return accuracy_score, precision, recall, f1
+
+	def loss_function(self, pred, truth):
+		return np.sum((pred - truth) * (pred - truth))
 
 
 def __train_neural_network__():
-	# print("Neural Network Training Program")
+	print("Neural Network Training Program")
 
 	# # Request text file with original weights
 	# initial_weights_path = input("Enter initial weight file location: ")
@@ -153,17 +191,18 @@ def __train_neural_network__():
 
 	num_epochs = 10
 	lambdah = 5
-	initial_weights_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.trained'
-	train_data_file_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.train'
-	test_data_file_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleB.test'
-
+	initial_weights_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleA.trained'
+	train_data_file_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleA.train'
+	test_data_file_path = '/home/krishna/Dropbox/MultiLayerPerceptron/sampleA.test'
+	output_path = 'blah.txt'
 	net = MultiLayerPerceptron(init_weights_file=initial_weights_path, train_data_file=train_data_file_path,
-								test_data_file=test_data_file_path, num_epochs=num_epochs, lambdah=lambdah)
+							   test_data_file=test_data_file_path, output_file='blah.txt', num_epochs=num_epochs,
+							   lambdah=lambdah)
 	net.test_network()
 
 
 def __test_neural_network__():
-	# print("Neural Network Testing Program")
+	print("Neural Network Testing Program")
 
 	# Request text file with original weights
 	trained_weights = input("Enter trained neural network file: ")
@@ -176,9 +215,18 @@ def __test_neural_network__():
 		testing_set_path = input("Enter testing set file location: ")
 
 	output_path = input("Enter output file location: ")
-	while not os.path.isfile(output_path):
-		output_path = input("Enter output file location: ")
+
+	net = MultiLayerPerceptron(init_weights_file=trained_weights, test_data_file=testing_set_path,
+							   output_file=output_path)
+	net.test_network()
 
 
 if __name__ == "__main__":
-	__train_neural_network__()
+	if len(sys.argv) < 2:
+		print("usage: python MLP.py <train | test>")
+	elif sys.argv[1] == 'test':
+		__test_neural_network__()
+	elif sys.argv[1] == 'train':
+		__train_neural_network__()
+	else:
+		print("usage: python MLP.py <train | test>")
