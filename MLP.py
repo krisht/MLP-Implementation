@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from scipy.special import expit as sig
+from sklearn.metrics import confusion_matrix
 
 
 #
@@ -35,12 +36,10 @@ class MultiLayerPerceptron:
 
 		if self.test_data_file is not None:
 			self.X_test, self.y_test = self.get_data(self.test_data_file)
-			self.X_test = self.X_test[0:1, :]
-			self.y_test = self.y_test[0:1, :]
 		else:
 			self.X_test, self.y_test = None, None
-		print(self.X_test)
-		print(self.y_test)
+		#print(self.X_test)
+		#print(self.y_test)
 
 		#self.train_network()
 
@@ -73,7 +72,7 @@ class MultiLayerPerceptron:
 					#print(sig(np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)]))
 					self.y = sig(np.matmul(x, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)])
 				else:
-					print(sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)])  - self.biases["b_%d_%d" % (ii, ii + 1)]))
+					#print(sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)])  - self.biases["b_%d_%d" % (ii, ii + 1)]))
 					self.y = sig(np.matmul(self.y, self.weights["w_%d_%d" % (ii, ii + 1)]) - self.biases["b_%d_%d" % (ii, ii + 1)])
 		return self.y
 
@@ -96,23 +95,31 @@ class MultiLayerPerceptron:
 			w_1_2 = np.asarray(weights).T
 
 			self.arch = arch
-			self.biases['b_0_1'] = w_0_1[-1]
-			self.weights['w_0_1'] = w_0_1[0:-1]
-			self.biases['b_1_2'] = w_1_2[-1]
-			self.weights['w_1_2'] = w_1_2[0:-1]
+			self.biases['b_0_1'] = w_0_1[0]
+			self.weights['w_0_1'] = w_0_1[1:]
+			self.biases['b_1_2'] = w_1_2[0]
+			self.weights['w_1_2'] = w_1_2[1:]
 
 	def back_prop(self, gamma, lamduh):
 		pass
 
 	def test_network(self):
-		pred_y = np.round(self.forward_prop(self.X_test), 0)
-		print(pred_y)
-		print(self.y_test)
-		pass
+		results = np.zeros((self.arch[2], 4))
+		y_pred = np.round(self.forward_prop(self.X_test), 0)
+		for ii in range(self.arch[2]):
+			results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_pred[:, ii]), (4))
+		overall_accuracy = (results[:, 0] + results[:, 3])/np.sum(results, 1)
+		precision = (results[:, 0])/(results[:, 0] + results[:, 1])
+		recall = (results[:, 0])/(results[:, 0] + results[:, 2])
+		f1 = (2 * precision * recall)/(precision + recall)
+		print(results[:,2])
+
+		print(f1)
+
 
 	def train_network(self):
-		for X, y in zip(self.X_train, self.y_train):
-			print(X, y)
+		# for X, y in zip(self.X_train, self.y_train):
+		# 	#print(X, y)
 		pass
 
 
