@@ -2,20 +2,17 @@ import os
 import sys
 
 import numpy as np
+import sklearn.datasets
 from scipy.special import expit as sig
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 
 np.set_printoptions(precision=3)
 
 
-def dsig(X):
-	return sig(X) * (1 - sig(X))
-
-
 class MultiLayerPerceptron:
 	def __init__(self, init_weights_file=None, train_data_file=None, test_data_file=None, output_file=None,
-				 num_epochs=None,
-				 lambdah=None):
+				 num_epochs=None, lambdah=None):
 		self.train_data_file = train_data_file
 		self.test_data_file = test_data_file
 		self.init_weights_file = init_weights_file
@@ -131,7 +128,7 @@ class MultiLayerPerceptron:
 
 		orig_results = np.asarray(orig_results, dtype=np.int32)
 
-		accuracy_score, precision, recall, f1 = self.calculate_metrics(orig_results)
+		accuracy_score, precision, recall, f1 = calculate_metrics(orig_results)
 
 		results = np.concatenate((orig_results, np.expand_dims(accuracy_score, 0).T, np.expand_dims(precision, 0).T,
 								  np.expand_dims(recall, 0).T, np.expand_dims(f1, 0).T), 1)
@@ -142,7 +139,7 @@ class MultiLayerPerceptron:
 		with open(self.output_file, 'w') as f:
 			for ii in range(results.shape[0]):
 				f.write("%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :]))
-			f.write("%0.3f %0.3f %0.3f %0.3f\n" % self.calculate_metrics(np.sum(orig_results, axis=0, keepdims=True)))
+			f.write("%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True)))
 			f.write("%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp))
 
 	def train_network(self):
@@ -152,42 +149,31 @@ class MultiLayerPerceptron:
 
 		pass
 
-	def calculate_metrics(self, results):
-		accuracy_score = np.asarray((results[:, 0] + results[:, 3]) / np.sum(results, 1), dtype=np.float32)
-		precision = np.asarray((results[:, 0]) / np.sum(results[:, 0:2], 1), dtype=np.float32)
-		recall = np.asarray((results[:, 0]) / (results[:, 0] + results[:, 2]), dtype=np.float32)
-		f1 = np.asarray(2 * precision * recall / (precision + recall), dtype=np.float32)
-
-		return accuracy_score, precision, recall, f1
-
-	def loss_function(self, pred, truth):
-		return np.sum((pred - truth) * (pred - truth))
-
 
 def __train_neural_network__():
 	print("Neural Network Training Program")
 
-	# # Request text file with original weights
-	# initial_weights_path = input("Enter initial weight file location: ")
-	# while not os.path.isfile(initial_weights_path):
-	# 	initial_weights_path = input("Enter initial weight file location: ")
-	#
-	# # Request
-	# training_set_path = input("Enter training set file location: ")
-	# while not os.path.isfile(training_set_path):
-	# 	training_set_path = input("Enter training set file location: ")
-	#
-	# output_path = input("Enter output file location: ")
-	# while not os.path.isfile(output_path):
-	# 	output_path = input("Enter output file location: ")
-	#
-	# num_epochs = int(input("Enter positive integer for number of epochs: "))
-	# while not num_epochs > 0:
-	# 	num_epochs = int(input("Enter positive integer for number of epochs: "))
-	#
-	# lambdah = float(input("Enter learning rate: "))
-	# while not lambdah > 0.0:
-	# 	lambdah = float(input("Enter learning rate: "))
+	# Request text file with original weights
+	initial_weights_path = input("Enter initial weight file location: ")
+	while not os.path.isfile(initial_weights_path):
+		initial_weights_path = input("Enter initial weight file location: ")
+
+	# Request
+	training_set_path = input("Enter training set file location: ")
+	while not os.path.isfile(training_set_path):
+		training_set_path = input("Enter training set file location: ")
+
+	output_path = input("Enter output file location: ")
+	while not os.path.isfile(output_path):
+		output_path = input("Enter output file location: ")
+
+	num_epochs = int(input("Enter positive integer for number of epochs: "))
+	while not num_epochs > 0:
+		num_epochs = int(input("Enter positive integer for number of epochs: "))
+
+	lambdah = float(input("Enter learning rate: "))
+	while not lambdah > 0.0:
+		lambdah = float(input("Enter learning rate: "))
 
 	num_epochs = 10
 	lambdah = 5
@@ -221,6 +207,40 @@ def __test_neural_network__():
 	net.test_network()
 
 
+def dsig(x):
+	return sig(x) * (1 - sig(x))
+
+
+def calculate_metrics(results):
+	accuracy_score = np.asarray((results[:, 0] + results[:, 3]) / np.sum(results, 1), dtype=np.float32)
+	precision = np.asarray((results[:, 0]) / np.sum(results[:, 0:2], 1), dtype=np.float32)
+	recall = np.asarray((results[:, 0]) / (results[:, 0] + results[:, 2]), dtype=np.float32)
+	f1 = np.asarray(2 * precision * recall / (precision + recall), dtype=np.float32)
+	return accuracy_score, precision, recall, f1
+
+
+def generate_dataset():
+	n_features = 20
+	n_classes = 5
+
+	train_size = 400
+	test_size = 100
+
+	x, y = sklearn.datasets.make_multilabel_classification(train_size + test_size, n_features, n_classes,
+														   allow_unlabeled=False)
+	x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+
+	with open('krishna_dataset.train', 'w') as f:
+		f.write("%d %d %d\n" % (train_size, n_features, n_classes))
+
+	with open('krishna_dataset.test', 'w') as f:
+		f.write("%d %d %d\n" % (test_size, n_features, n_classes))
+
+	train_set = np.concatenate((x_train, y_train), axis=1)
+	test_set = np.concatenate((x_test, y_test), axis=1)
+	np.savetxt(open('krishna_dataset.train', 'ab'), train_set, '%d', delimiter=' ')
+	np.savetxt(open('krishna_dataset.test', 'ab'), test_set, '%d', delimiter=' ')
+
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("usage: python MLP.py <train | test>")
@@ -228,5 +248,9 @@ if __name__ == "__main__":
 		__test_neural_network__()
 	elif sys.argv[1] == 'train':
 		__train_neural_network__()
+	elif sys.argv[1] == 'gen_data':
+		generate_dataset()
 	else:
-		print("usage: python MLP.py <train | test>")
+		print("usage: python MLP.py <train | test | gen_data>")
+
+generate_dataset()
