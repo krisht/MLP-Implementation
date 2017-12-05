@@ -240,7 +240,6 @@ def generate_dataset():
 	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
 
 
-
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("usage: python MLP.py [train | test | gen_data]")
