@@ -149,19 +149,22 @@ def __train_neural_network__():
 	while not os.path.isfile(initial_weights_path):
 		initial_weights_path = input("Enter initial weight file location: ")
 
-	# Request
+	# Request training set location
 	training_set_path = input("Enter training set file location: ")
 	while not os.path.isfile(training_set_path):
 		training_set_path = input("Enter training set file location: ")
 
+	# Request output file location
 	output_path = input("Enter output file location: ")
 	while not os.path.isfile(output_path):
 		open(output_path, 'w')
 
+	# Request number of epochs
 	num_epochs = int(input("Enter positive integer for number of epochs: "))
 	while not num_epochs > 0:
 		num_epochs = int(input("Enter positive integer for number of epochs: "))
 
+	# Request learning rate
 	lambdaa = float(input("Enter learning rate: "))
 	while not lambdaa > 0.0:
 		lambdaa = float(input("Enter learning rate: "))
@@ -179,12 +182,15 @@ def __test_neural_network__():
 	while not os.path.isfile(trained_weights):
 		trained_weights = input("Enter trained neural network file: ")
 
-	# Request
+	# Request text file with test set
 	testing_set_path = input("Enter testing set file location: ")
 	while not os.path.isfile(testing_set_path):
 		testing_set_path = input("Enter testing set file location: ")
 
+	# Ouput text file name
 	output_path = input("Enter output file location: ")
+	while not os.path.isfile(output_path):
+		open(output_path, 'w')
 
 	net = MultiLayerPerceptron(init_weights_file=trained_weights, test_data_file=testing_set_path, output_file=output_path)
 	net.test_network()
@@ -204,6 +210,7 @@ def calculate_metrics(results):
 
 def generate_dataset():
 	n_features = 20
+	n_hidden = 25
 	n_classes = 5
 
 	train_size = 400
@@ -213,18 +220,25 @@ def generate_dataset():
 	x = x / 17.0
 	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
 
-	with open('krishna_dataset.train', 'w') as f:
+	with open('krishna.train', 'w') as f:
 		f.write("%d %d %d\n" % (train_size, n_features, n_classes))
 
-	with open('krishna_dataset.test', 'w') as f:
+	with open('krishna.test', 'w') as f:
 		f.write("%d %d %d\n" % (test_size, n_features, n_classes))
 
 	train_set = np.concatenate((x_train, y_train), axis=1)
 	test_set = np.concatenate((x_test, y_test), axis=1)
 
 	format_string = "%0.3f " * n_features + "%d " * n_classes
-	np.savetxt(open('krishna_dataset.train', 'ab'), train_set, format_string[:-1], delimiter=' ')
-	np.savetxt(open('krishna_dataset.test', 'ab'), test_set, format_string[:-1], delimiter=' ')
+	np.savetxt(open('krishna.train', 'ab'), train_set, format_string[:-1], delimiter=' ')
+	np.savetxt(open('krishna.test', 'ab'), test_set, format_string[:-1], delimiter=' ')
+
+	with open('krishna.init', 'w') as f:
+		f.write('%d %d %d\n' % (n_features, n_hidden, n_classes))
+
+	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_features + 1, n_hidden).T, '%0.3f', ' ')
+	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
+
 
 
 if __name__ == "__main__":
