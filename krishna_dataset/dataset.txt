@@ -1,0 +1,1 @@
+Trained with 100 epochs and learning rate of 0.05
