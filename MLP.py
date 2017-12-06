@@ -1,35 +1,11 @@
 import os
 import sys
 
-try:
-	import numpy as np
-except ImportError:
-	sys.stdout.write('Script requires numpy...\n')
-	sys.exit(-1)
-
-try:
-	from scipy.special import expit as sig
-except ImportError:
-	sys.stdout.write('Script requires expit from scipy.special...\n')
-	sys.exit(-1)
-
-try:
-	from sklearn.datasets import make_multilabel_classification
-except ImportError:
-	sys.stdout.write('Script requires make_multilabel_classification from sklearn.datasets...\n')
-	sys.exit(-1)
-
-try:
-	from sklearn.metrics import confusion_matrix
-except ImportError:
-	sys.stdout.write('Script requires make_multilabel_classification from sklearn.datasets...\n')
-	sys.exit(-1)
-
-try:
-	from sklearn.model_selection import train_test_split
-except ImportError:
-	sys.stdout.write('Script requires train_test_split from sklearn.model_selection...\n')
-	sys.exit(-1)
+import numpy as np
+from scipy.special import expit as sig
+from sklearn.datasets import make_multilabel_classification
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 
 try:
 	assert sys.version_info >= (3,)
