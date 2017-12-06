@@ -264,5 +264,3 @@ try:
 except KeyboardInterrupt:
 	sys.stdout.write("\nEncountered Ctrl + C. Exiting...\n")
 	sys.exit(0)
-
-	# 0.01, 1000
