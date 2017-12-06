@@ -24,7 +24,7 @@ class MLP:
 		self.num_epochs = num_epochs
 		self.alpha = alpha
 		self.arch = []
-		self.weights = {}
+		self.w1 = self.w2 = None
 
 		self.a1 = self.a2 = self.a3 = None
 		self.ins2 = self.ins3 = None
@@ -71,10 +71,10 @@ class MLP:
 		else:
 			x = np.append(-np.ones((len(x), 1)), x, axis=1)
 			self.a1 = x
-			self.ins2 = np.matmul(self.a1, self.weights['w1'])
+			self.ins2 = np.matmul(self.a1, self.w1)
 			self.a2 = sig(self.ins2)
 			self.a2 = np.append(-np.ones((len(self.a2), 1)), self.a2, axis=1)
-			self.ins3 = np.matmul(self.a2, self.weights['w2'])
+			self.ins3 = np.matmul(self.a2, self.w2)
 			self.a3 = sig(self.ins3)
 		return self.a3
 
@@ -97,8 +97,8 @@ class MLP:
 			w2 = np.asarray(weights).T
 
 			self.arch = arch
-			self.weights['w1'] = w1
-			self.weights['w2'] = w2
+			self.w1 = w1
+			self.w2 = w2
 
 	def test_network(self):
 		orig_results = np.zeros((self.arch[2], 4))
@@ -140,16 +140,16 @@ class MLP:
 				temp_y = self.y_train[ii:ii + 1, :]
 				self.forward_prop(temp_x)
 				delta3 = dsig(self.ins3) * (temp_y - self.a3)
-				delta2 = dsig(self.ins2) * np.matmul(delta3, self.weights['w2'][1:, ].T)
-				self.weights['w2'] = self.weights['w2'] + self.alpha * np.matmul(self.a2.T, delta3)
-				self.weights['w1'] = self.weights['w1'] + self.alpha * np.matmul(self.a1.T, delta2)
+				delta2 = dsig(self.ins2) * np.matmul(delta3, self.w2[1:, ].T)
+				self.w2 = self.w2 + self.alpha * np.matmul(self.a2.T, delta3)
+				self.w1 = self.w1 + self.alpha * np.matmul(self.a1.T, delta2)
 
 		with open(self.output_file, 'wb') as f:
 			tmp_str = '%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2])
 			f.write(tmp_str.encode('utf-8'))
 
-		np.savetxt(open(self.output_file, 'ab'), self.weights['w1'].T, '%0.3f', delimiter=' ')
-		np.savetxt(open(self.output_file, 'ab'), self.weights['w2'].T, '%0.3f', delimiter=' ')
+		np.savetxt(open(self.output_file, 'ab'), self.w1.T, '%0.3f', delimiter=' ')
+		np.savetxt(open(self.output_file, 'ab'), self.w2.T, '%0.3f', delimiter=' ')
 
 
 def __train_neural_network__():
