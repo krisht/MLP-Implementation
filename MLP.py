@@ -3,9 +3,7 @@ import sys
 
 import numpy as np
 from scipy.special import expit as sig
-from sklearn.datasets import make_multilabel_classification
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
 
 try:
 	assert sys.version_info >= (3,)
@@ -218,41 +216,6 @@ def calculate_metrics(results):
 	recall = np.asarray((results[:, 0]) / (results[:, 0] + results[:, 2]), dtype=np.float32)
 	f1 = np.asarray(2 * precision * recall / (precision + recall), dtype=np.float32)
 	return accuracy, precision, recall, f1
-
-
-def generate_data_set():
-	n_features = 20
-	n_hidden = 25
-	n_classes = 5
-
-	train_size = 400
-	test_size = 100
-
-	x, y = make_multilabel_classification(train_size + test_size, n_features, n_classes, allow_unlabeled=False)
-	x = x / 17.0
-	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-
-	with open('krishna.train', 'wb') as f:
-		tmp_str = '%d %d %d\n' % (train_size, n_features, n_classes)
-		f.write(tmp_str.encode('utf-8'))
-
-	with open('krishna.test', 'wb') as f:
-		tmp_str = '%d %d %d\n' % (test_size, n_features, n_classes)
-		f.write(tmp_str.encode('utf-8'))
-
-	train_set = np.concatenate((x_train, y_train), axis=1)
-	test_set = np.concatenate((x_test, y_test), axis=1)
-
-	format_string = '%0.3f ' * n_features + '%d ' * n_classes
-	np.savetxt(open('krishna.train', 'ab'), train_set, format_string[:-1], delimiter=' ')
-	np.savetxt(open('krishna.test', 'ab'), test_set, format_string[:-1], delimiter=' ')
-
-	with open('krishna.init', 'wb') as f:
-		tmp_str = '%d %d %d\n' % (n_features, n_hidden, n_classes)
-		f.write(tmp_str.encode('utf-8'))
-
-	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_features + 1, n_hidden).T, '%0.3f', ' ')
-	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
 
 
 try:
