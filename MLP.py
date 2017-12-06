@@ -16,22 +16,22 @@ np.set_printoptions(precision=3)
 
 
 class MLP:
-	def __init__(self, weights_file=None, train_file=None, test_file=None, output_file=None, num_epochs=None, alpha=None):
+	def __init__(self, weights_file=None, train_file=None, test_file=None, output_file=None, n_epochs=None, alpha=None):
 		self.train_file = train_file
 		self.test_file = test_file
 		self.weights_file = weights_file
 		self.output_file = output_file
-		self.num_epochs = num_epochs
+		self.n_epochs = n_epochs
 		self.alpha = alpha
-		self.arch = []
+		self.n_inputs = None
+		self.n_hidden = None
+		self.n_output = None
 		self.w1 = self.w2 = None
 
 		self.a1 = self.a2 = self.a3 = None
 		self.ins2 = self.ins3 = None
 
 		self.load_initial_weights()
-
-		self.num_layers = len(self.arch) - 1
 
 		if self.train_file is not None:
 			self.X_train, self.y_train = self.get_data(self.train_file)
@@ -47,26 +47,26 @@ class MLP:
 		data = []
 		with open(file_name, 'r') as file:
 			temp = file.readline().split()
-			num_inputs = int(temp[1])
-			num_outputs = int(temp[2])
+			n_inputs = int(temp[1])
+			n_outputs = int(temp[2])
 
-			if num_inputs != self.arch[0]:
+			if n_inputs != self.n_inputs:
 				raise ValueError('Incorrect input dimensions.')
-			elif num_outputs != self.arch[2]:
+			elif n_outputs != self.n_output:
 				raise ValueError('Incorrect output dimensions.')
 
 			for line in file:
 				line = [float(i) for i in line.split()]
 				data = data + [line]
 
-			x = np.asarray(data).T[:num_inputs].T
-			y = np.asarray(data).T[num_inputs:].T
+			x = np.asarray(data).T[:n_inputs].T
+			y = np.asarray(data).T[n_inputs:].T
 
 			return x, y
 		return None, None
 
 	def forward_prop(self, x):
-		if len(x.shape) != 2 or x.shape[1] != self.arch[0]:
+		if len(x.shape) != 2 or x.shape[1] != self.n_inputs:
 			raise ValueError('Incorrect input shape ' + str(x.shape) + ' given!')
 		else:
 			x = np.append(-np.ones((len(x), 1)), x, axis=1)
@@ -96,14 +96,16 @@ class MLP:
 				weights = weights + [line]
 			w2 = np.asarray(weights).T
 
-			self.arch = arch
+			self.n_inputs = arch[0]
+			self.n_hidden = arch[1]
+			self.n_output = arch[2]
 			self.w1 = w1
 			self.w2 = w2
 
 	def test_network(self):
-		orig_results = np.zeros((self.arch[2], 4))
+		orig_results = np.zeros((self.n_output, 4))
 		y_hat = np.round(self.forward_prop(self.X_test), 0)
-		for ii in range(self.arch[2]):
+		for ii in range(self.n_output):
 			orig_results[ii, :] = np.reshape(confusion_matrix(self.y_test[:, ii], y_hat[:, ii]), 4)
 			orig_results[ii, 0], orig_results[ii, 3] = orig_results[ii, 3], orig_results[ii, 0]
 
@@ -134,18 +136,18 @@ class MLP:
 
 	def train_network(self):
 
-		for _ in range(self.num_epochs):
+		for _ in range(self.n_epochs):
 			for ii in range(len(self.X_train)):
 				temp_x = self.X_train[ii:ii + 1, :]
 				temp_y = self.y_train[ii:ii + 1, :]
 				self.forward_prop(temp_x)
 				delta3 = dsig(self.ins3) * (temp_y - self.a3)
 				delta2 = dsig(self.ins2) * np.matmul(delta3, self.w2[1:, ].T)
-				self.w2 = self.w2 + self.alpha * np.matmul(self.a2.T, delta3)
-				self.w1 = self.w1 + self.alpha * np.matmul(self.a1.T, delta2)
+				self.w2 += self.alpha * np.matmul(self.a2.T, delta3)
+				self.w1 += self.alpha * np.matmul(self.a1.T, delta2)
 
 		with open(self.output_file, 'wb') as f:
-			tmp_str = '%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2])
+			tmp_str = '%d %d %d\n' % (self.n_inputs, self.n_hidden, self.n_output)
 			f.write(tmp_str.encode('utf-8'))
 
 		np.savetxt(open(self.output_file, 'ab'), self.w1.T, '%0.3f', delimiter=' ')
@@ -166,21 +168,21 @@ def __train_neural_network__():
 		train_path = input('Enter training set file location: ')
 
 	# Request output file location
-	output_path = input('Enter output file location: ')
-	while not os.path.isfile(output_path):
-		open(output_path, 'wb')
+	output_file = input('Enter output file location: ')
+	while not os.path.isfile(output_file):
+		open(output_file, 'wb')
 
 	# Request number of epochs
-	num_epochs = int(input('Enter positive integer for number of epochs: '))
-	while not num_epochs > 0:
-		num_epochs = int(input('Enter positive integer for number of epochs: '))
+	n_epochs = int(input('Enter positive integer for number of epochs: '))
+	while not n_epochs > 0:
+		n_epochs = int(input('Enter positive integer for number of epochs: '))
 
 	# Request learning rate
-	alpha = float(input('Enter learning rate: '))
+	alpha = float(input('Enter positive number for learning rate: '))
 	while not alpha > 0.0:
-		alpha = float(input('Enter learning rate: '))
+		alpha = float(input('Enter positive number for learning rate: '))
 
-	net = MLP(weights_file=weights_file, train_file=train_path, output_file=output_path, num_epochs=num_epochs, alpha=alpha)
+	net = MLP(weights_file=weights_file, train_file=train_path, output_file=output_file, n_epochs=n_epochs, alpha=alpha)
 	net.train_network()
 
 
@@ -193,16 +195,16 @@ def __test_neural_network__():
 		trained_weights = input('Enter trained neural network file: ')
 
 	# Request text file with test set
-	testing_set_path = input('Enter testing set file location: ')
-	while not os.path.isfile(testing_set_path):
-		testing_set_path = input('Enter testing set file location: ')
+	test_file = input('Enter testing set file location: ')
+	while not os.path.isfile(test_file):
+		test_file = input('Enter testing set file location: ')
 
 	# Output text file name
-	output_path = input('Enter output file location: ')
-	while not os.path.isfile(output_path):
-		open(output_path, 'wb')
+	output_file = input('Enter output file location: ')
+	while not os.path.isfile(output_file):
+		open(output_file, 'wb')
 
-	net = MLP(weights_file=trained_weights, test_file=testing_set_path, output_file=output_path)
+	net = MLP(weights_file=trained_weights, test_file=test_file, output_file=output_file)
 	net.test_network()
 
 
