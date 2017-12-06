@@ -255,8 +255,6 @@ def generate_data_set():
 	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
 
 
-print(OSError.__class__.__doc__)
-
 try:
 	if __name__ == "__main__":
 		if len(sys.argv) < 2:
