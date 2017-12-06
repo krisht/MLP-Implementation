@@ -111,11 +111,14 @@ class MultiLayerPerceptron:
 		temp = np.average(results[:, 4:], axis=0)
 		temp[3] = 2 * temp[1] * temp[2] / (temp[1] + temp[2])
 
-		with open(self.output_file, 'w') as f:
+		with open(self.output_file, 'wb') as f:
 			for ii in range(results.shape[0]):
-				f.write("%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :]))
-			f.write("%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True)))
-			f.write("%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp))
+				tmp_str = "%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :])
+				f.write(tmp_str.encode('utf-8'))
+			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True))
+			f.write(tmp_str.encode('utf-8'))
+			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp)
+			f.write(tmp_str.encode('utf-8'))
 
 	def train_network(self):
 
@@ -129,8 +132,9 @@ class MultiLayerPerceptron:
 				self.weights['w2'] = self.weights['w2'] + self.alpha * np.matmul(self.a2.T, delta3)
 				self.weights['w1'] = self.weights['w1'] + self.alpha * np.matmul(self.a1.T, delta2)
 
-		with open(self.output_file, 'w') as f:
-			f.write('%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2]))
+		with open(self.output_file, 'wb') as f:
+			tmp_str = '%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2])
+			f.write(tmp_str.encode('utf-8'))
 
 		np.savetxt(open(self.output_file, 'ab'), self.weights['w1'].T, '%0.3f', delimiter=' ')
 		np.savetxt(open(self.output_file, 'ab'), self.weights['w2'].T, '%0.3f', delimiter=' ')
@@ -152,7 +156,7 @@ def __train_neural_network__():
 	# Request output file location
 	output_path = input("Enter output file location: ")
 	while not os.path.isfile(output_path):
-		open(output_path, 'w')
+		open(output_path, 'wb')
 
 	# Request number of epochs
 	num_epochs = int(input("Enter positive integer for number of epochs: "))
@@ -185,7 +189,7 @@ def __test_neural_network__():
 	# Output text file name
 	output_path = input("Enter output file location: ")
 	while not os.path.isfile(output_path):
-		open(output_path, 'w')
+		open(output_path, 'wb')
 
 	net = MultiLayerPerceptron(weights_file=trained_weights, test_file=testing_set_path, output_file=output_path)
 	net.test_network()
@@ -211,15 +215,18 @@ def generate_data_set():
 	train_size = 400
 	test_size = 100
 
-	x, y = sklearn.datasets.make_multilabel_classification(train_size + test_size, n_features, n_classes, allow_unlabeled=False)
+	x, y = sklearn.datasets.make_multilabel_classification(train_size + test_size, n_features, n_classes,
+														   allow_unlabeled=False)
 	x = x / 17.0
 	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
 
-	with open('krishna.train', 'w') as f:
-		f.write("%d %d %d\n" % (train_size, n_features, n_classes))
+	with open('krishna.train', 'wb') as f:
+		tmp_str = "%d %d %d\n" % (train_size, n_features, n_classes)
+		f.write(tmp_str.encode('utf-8'))
 
-	with open('krishna.test', 'w') as f:
-		f.write("%d %d %d\n" % (test_size, n_features, n_classes))
+	with open('krishna.test', 'wb') as f:
+		tmp_str = "%d %d %d\n" % (test_size, n_features, n_classes)
+		f.write(tmp_str.encode('utf-8'))
 
 	train_set = np.concatenate((x_train, y_train), axis=1)
 	test_set = np.concatenate((x_test, y_test), axis=1)
@@ -228,8 +235,9 @@ def generate_data_set():
 	np.savetxt(open('krishna.train', 'ab'), train_set, format_string[:-1], delimiter=' ')
 	np.savetxt(open('krishna.test', 'ab'), test_set, format_string[:-1], delimiter=' ')
 
-	with open('krishna.init', 'w') as f:
-		f.write('%d %d %d\n' % (n_features, n_hidden, n_classes))
+	with open('krishna.init', 'wb') as f:
+		tmp_str = '%d %d %d\n' % (n_features, n_hidden, n_classes)
+		f.write(tmp_str.encode('utf-8'))
 
 	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_features + 1, n_hidden).T, '%0.3f', ' ')
 	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
