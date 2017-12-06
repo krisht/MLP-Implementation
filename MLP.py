@@ -7,6 +7,12 @@ from sklearn.datasets import make_multilabel_classification
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
+try:
+	assert sys.version_info >= (3,)
+except AssertionError:
+	sys.stdout.write("Python 3 interpreter required\n")
+	sys.exit(-1)
+
 np.set_printoptions(precision=3)
 
 
@@ -242,12 +248,16 @@ def generate_data_set():
 	np.savetxt(open('krishna.init', 'ab'), np.random.rand(n_hidden + 1, n_classes).T, '%0.3f', ' ')
 
 
-if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("usage: python MLP.py [train|test]")
-	elif sys.argv[1] == 'test':
-		__test_neural_network__()
-	elif sys.argv[1] == 'train':
-		__train_neural_network__()
-	else:
-		print("usage: python MLP.py [train|test]")
+try:
+	if __name__ == "__main__":
+		if len(sys.argv) < 2:
+			print("usage: python MLP.py [train|test]")
+		elif sys.argv[1] == 'test':
+			__test_neural_network__()
+		elif sys.argv[1] == 'train':
+			__train_neural_network__()
+		else:
+			print("usage: python MLP.py [train|test]")
+except KeyboardInterrupt:
+	sys.stdout.write("\nEncountered Ctrl + C. Exiting...\n")
+	sys.exit(0)

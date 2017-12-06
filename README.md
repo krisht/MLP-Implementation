@@ -1,6 +1,6 @@
 # Multilayer Perceptron Implementation
 
-To run program :  ```python MLP.py [train|test]```
+To run program :  ```python3 MLP.py [train|test]``` (Requires python3 or it crashes)
 
 
 ## Krishna's Dataset
