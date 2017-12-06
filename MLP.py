@@ -117,14 +117,17 @@ class MultiLayerPerceptron:
 		temp = np.average(results[:, 4:], axis=0)
 		temp[3] = 2 * temp[1] * temp[2] / (temp[1] + temp[2])
 
-		with open(self.output_file, 'wb') as f:
-			for ii in range(results.shape[0]):
-				tmp_str = "%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :])
+		if self.output_file is not None:
+			with open(self.output_file, 'wb') as f:
+				for ii in range(results.shape[0]):
+					tmp_str = "%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :])
+					f.write(tmp_str.encode('utf-8'))
+				tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True))
 				f.write(tmp_str.encode('utf-8'))
-			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True))
-			f.write(tmp_str.encode('utf-8'))
-			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp)
-			f.write(tmp_str.encode('utf-8'))
+				tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp)
+				f.write(tmp_str.encode('utf-8'))
+		else:
+			return np.average(accuracy_score)
 
 	def train_network(self):
 
@@ -138,13 +141,13 @@ class MultiLayerPerceptron:
 				self.weights['w2'] = self.weights['w2'] + self.alpha * np.matmul(self.a2.T, delta3)
 				self.weights['w1'] = self.weights['w1'] + self.alpha * np.matmul(self.a1.T, delta2)
 
-		with open(self.output_file, 'wb') as f:
-			tmp_str = '%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2])
-			f.write(tmp_str.encode('utf-8'))
+		if self.output_file is not None:
+			with open(self.output_file, 'wb') as f:
+				tmp_str = '%d %d %d\n' % (self.arch[0], self.arch[1], self.arch[2])
+				f.write(tmp_str.encode('utf-8'))
 
-		np.savetxt(open(self.output_file, 'ab'), self.weights['w1'].T, '%0.3f', delimiter=' ')
-		np.savetxt(open(self.output_file, 'ab'), self.weights['w2'].T, '%0.3f', delimiter=' ')
-
+			np.savetxt(open(self.output_file, 'ab'), self.weights['w1'].T, '%0.3f', delimiter=' ')
+			np.savetxt(open(self.output_file, 'ab'), self.weights['w2'].T, '%0.3f', delimiter=' ')
 
 def __train_neural_network__():
 	print("Neural Network Training Program")
@@ -261,3 +264,5 @@ try:
 except KeyboardInterrupt:
 	sys.stdout.write("\nEncountered Ctrl + C. Exiting...\n")
 	sys.exit(0)
+
+	# 0.01, 1000
