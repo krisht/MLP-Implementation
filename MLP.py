@@ -10,8 +10,8 @@ from sklearn.model_selection import train_test_split
 try:
 	assert sys.version_info >= (3,)
 except AssertionError:
-	sys.stdout.write("Run with python3...\n")
-	sys.stdout.write("usage: python3 MLP.py [train|test]\n")
+	sys.stdout.write('Run with python3...\n')
+	sys.stdout.write('usage: python3 MLP.py [train|test]\n')
 	sys.exit(-1)
 
 np.set_printoptions(precision=3)
@@ -53,9 +53,9 @@ class MLP:
 			num_outputs = int(temp[2])
 
 			if num_inputs != self.arch[0]:
-				raise ValueError("Incorrect input dimensions.")
+				raise ValueError('Incorrect input dimensions.')
 			elif num_outputs != self.arch[2]:
-				raise ValueError("Incorrect output dimensions.")
+				raise ValueError('Incorrect output dimensions.')
 
 			for line in file:
 				line = [float(i) for i in line.split()]
@@ -69,14 +69,14 @@ class MLP:
 
 	def forward_prop(self, x):
 		if len(x.shape) != 2 or x.shape[1] != self.arch[0]:
-			raise ValueError("Incorrect input shape " + str(x.shape) + " given!")
+			raise ValueError('Incorrect input shape ' + str(x.shape) + ' given!')
 		else:
 			x = np.append(-np.ones((len(x), 1)), x, axis=1)
 			self.a1 = x
-			self.ins2 = np.matmul(self.a1, self.weights["w1"])
+			self.ins2 = np.matmul(self.a1, self.weights['w1'])
 			self.a2 = sig(self.ins2)
 			self.a2 = np.append(-np.ones((len(self.a2), 1)), self.a2, axis=1)
-			self.ins3 = np.matmul(self.a2, self.weights["w2"])
+			self.ins3 = np.matmul(self.a2, self.weights['w2'])
 			self.a3 = sig(self.ins3)
 		return self.a3
 
@@ -124,11 +124,11 @@ class MLP:
 
 		with open(self.output_file, 'wb') as f:
 			for ii in range(results.shape[0]):
-				tmp_str = "%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n" % tuple(results[ii, :])
+				tmp_str = '%d %d %d %d %0.3f %0.3f %0.3f %0.3f\n' % tuple(results[ii, :])
 				f.write(tmp_str.encode('utf-8'))
-			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True))
+			tmp_str = '%0.3f %0.3f %0.3f %0.3f\n' % calculate_metrics(np.sum(orig_results, axis=0, keepdims=True))
 			f.write(tmp_str.encode('utf-8'))
-			tmp_str = "%0.3f %0.3f %0.3f %0.3f\n" % tuple(temp)
+			tmp_str = '%0.3f %0.3f %0.3f %0.3f\n' % tuple(temp)
 			f.write(tmp_str.encode('utf-8'))
 
 		# Return value not used in most cases
@@ -155,52 +155,52 @@ class MLP:
 
 
 def __train_neural_network__():
-	print("Neural Network Training Program")
+	print('Neural Network Training Program')
 
 	# Request text file with original weights
-	weights_file = input("Enter initial weight file location: ")
+	weights_file = input('Enter initial weight file location: ')
 	while not os.path.isfile(weights_file):
-		weights_file = input("Enter initial weight file location: ")
+		weights_file = input('Enter initial weight file location: ')
 
 	# Request training set location
-	train_path = input("Enter training set file location: ")
+	train_path = input('Enter training set file location: ')
 	while not os.path.isfile(train_path):
-		train_path = input("Enter training set file location: ")
+		train_path = input('Enter training set file location: ')
 
 	# Request output file location
-	output_path = input("Enter output file location: ")
+	output_path = input('Enter output file location: ')
 	while not os.path.isfile(output_path):
 		open(output_path, 'wb')
 
 	# Request number of epochs
-	num_epochs = int(input("Enter positive integer for number of epochs: "))
+	num_epochs = int(input('Enter positive integer for number of epochs: '))
 	while not num_epochs > 0:
-		num_epochs = int(input("Enter positive integer for number of epochs: "))
+		num_epochs = int(input('Enter positive integer for number of epochs: '))
 
 	# Request learning rate
-	alpha = float(input("Enter learning rate: "))
+	alpha = float(input('Enter learning rate: '))
 	while not alpha > 0.0:
-		alpha = float(input("Enter learning rate: "))
+		alpha = float(input('Enter learning rate: '))
 
 	net = MLP(weights_file=weights_file, train_file=train_path, output_file=output_path, num_epochs=num_epochs, alpha=alpha)
 	net.train_network()
 
 
 def __test_neural_network__():
-	print("Neural Network Testing Program")
+	print('Neural Network Testing Program')
 
 	# Request text file with original weights
-	trained_weights = input("Enter trained neural network file: ")
+	trained_weights = input('Enter trained neural network file: ')
 	while not os.path.isfile(trained_weights):
-		trained_weights = input("Enter trained neural network file: ")
+		trained_weights = input('Enter trained neural network file: ')
 
 	# Request text file with test set
-	testing_set_path = input("Enter testing set file location: ")
+	testing_set_path = input('Enter testing set file location: ')
 	while not os.path.isfile(testing_set_path):
-		testing_set_path = input("Enter testing set file location: ")
+		testing_set_path = input('Enter testing set file location: ')
 
 	# Output text file name
-	output_path = input("Enter output file location: ")
+	output_path = input('Enter output file location: ')
 	while not os.path.isfile(output_path):
 		open(output_path, 'wb')
 
@@ -233,17 +233,17 @@ def generate_data_set():
 	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
 
 	with open('krishna.train', 'wb') as f:
-		tmp_str = "%d %d %d\n" % (train_size, n_features, n_classes)
+		tmp_str = '%d %d %d\n' % (train_size, n_features, n_classes)
 		f.write(tmp_str.encode('utf-8'))
 
 	with open('krishna.test', 'wb') as f:
-		tmp_str = "%d %d %d\n" % (test_size, n_features, n_classes)
+		tmp_str = '%d %d %d\n' % (test_size, n_features, n_classes)
 		f.write(tmp_str.encode('utf-8'))
 
 	train_set = np.concatenate((x_train, y_train), axis=1)
 	test_set = np.concatenate((x_test, y_test), axis=1)
 
-	format_string = "%0.3f " * n_features + "%d " * n_classes
+	format_string = '%0.3f ' * n_features + '%d ' * n_classes
 	np.savetxt(open('krishna.train', 'ab'), train_set, format_string[:-1], delimiter=' ')
 	np.savetxt(open('krishna.test', 'ab'), test_set, format_string[:-1], delimiter=' ')
 
@@ -256,18 +256,18 @@ def generate_data_set():
 
 
 try:
-	if __name__ == "__main__":
+	if __name__ == '__main__':
 		if len(sys.argv) < 2:
-			print("usage: python3 MLP.py [train|test]")
+			print('usage: python3 MLP.py [train|test]')
 		elif sys.argv[1] == 'test':
 			__test_neural_network__()
 		elif sys.argv[1] == 'train':
 			__train_neural_network__()
 		else:
-			print("usage: python3 MLP.py [train|test]")
+			print('usage: python3 MLP.py [train|test]')
 except IOError as io:
-	sys.stdout.write("\nError opening file %s: %s. Exiting...\n" % (io.filename, io.strerror))
+	sys.stdout.write('\nError opening file %s: %s. Exiting...\n' % (io.filename, io.strerror))
 	sys.exit(-1)
 except KeyboardInterrupt:
-	sys.stdout.write("\nEncountered Ctrl + C. Exiting...\n")
+	sys.stdout.write('\nEncountered Ctrl + C. Exiting...\n')
 	sys.exit(0)
