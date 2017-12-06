@@ -2,8 +2,8 @@ import os
 import sys
 
 import numpy as np
-import sklearn.datasets
 from scipy.special import expit as sig
+from sklearn.datasets import make_multilabel_classification
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
@@ -144,14 +144,14 @@ def __train_neural_network__():
 	print("Neural Network Training Program")
 
 	# Request text file with original weights
-	init_weights_path = input("Enter initial weight file location: ")
-	while not os.path.isfile(init_weights_path):
-		init_weights_path = input("Enter initial weight file location: ")
+	weights_file = input("Enter initial weight file location: ")
+	while not os.path.isfile(weights_file):
+		weights_file = input("Enter initial weight file location: ")
 
 	# Request training set location
-	training_set_path = input("Enter training set file location: ")
-	while not os.path.isfile(training_set_path):
-		training_set_path = input("Enter training set file location: ")
+	train_path = input("Enter training set file location: ")
+	while not os.path.isfile(train_path):
+		train_path = input("Enter training set file location: ")
 
 	# Request output file location
 	output_path = input("Enter output file location: ")
@@ -168,7 +168,7 @@ def __train_neural_network__():
 	while not alpha > 0.0:
 		alpha = float(input("Enter learning rate: "))
 
-	net = MultiLayerPerceptron(weights_file=init_weights_path, train_file=training_set_path, output_file=output_path,
+	net = MultiLayerPerceptron(weights_file=weights_file, train_file=train_path, output_file=output_path,
 							   num_epochs=num_epochs, alpha=alpha)
 	net.train_network()
 
@@ -215,8 +215,7 @@ def generate_data_set():
 	train_size = 400
 	test_size = 100
 
-	x, y = sklearn.datasets.make_multilabel_classification(train_size + test_size, n_features, n_classes,
-														   allow_unlabeled=False)
+	x, y = make_multilabel_classification(train_size + test_size, n_features, n_classes, allow_unlabeled=False)
 	x = x / 17.0
 	x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
 
