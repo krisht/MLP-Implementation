@@ -265,6 +265,10 @@ try:
 			__train_neural_network__()
 		else:
 			print("usage: python3 MLP.py [train|test]")
+except IOError:
+	_, value, _ = sys.exc_info()
+	sys.stdout.write("\nError opening file %s: %s. Exiting...\n" % (value.filename, value.strerror))
+	sys.exit(-1)
 except KeyboardInterrupt:
 	sys.stdout.write("\nEncountered Ctrl + C. Exiting...\n")
 	sys.exit(0)
