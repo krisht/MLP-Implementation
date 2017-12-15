@@ -11,5 +11,5 @@ Contains:
 - ```krishna.train```, the training set
 - ```krishna.test```, the testing set
 - ```krishna.init```, the initial weights file
-- ```krishna.trained```, the trained weights file after 1000 epochs and 0.01 learning rate
+- ```krishna.trained```, the trained weights file after 1000 epochs and 0.01 learning rate with 25 nodes in the hidden layer. Leads to around 75% overall accuracy, which I considered reasonable
 - ```krishna.results```, the test set evaluation results for running network on data from ```krishna.test``` with weights from ```krishna.trained```
